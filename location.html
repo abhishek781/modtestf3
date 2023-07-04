@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Public IP ADDRESS</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Public IP ADDRESS:</h1>
+
+  <p id="ip-address"></p>
+  <p id="timezone"></p>
+  <p id="date-time"></p>
+  <p id="pincode"></p>
+
+  <!-- <div id="map"></div> -->
+  <iframe id="map" src="" width="360" height="270" frameborder="0" style="border:0"></iframe>
+  <input type="text" id="search-input" placeholder="filter">
+  <ul id="post-offices-list"></ul>
+
+  <script>
+    function getIP(callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://api.ipify.org?format=json', true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText);
+          callback(data.ip);
+        }
+      };
+      xhr.send();
+    }
+
+    function NewMap(lat,lng){
+       iframe =  document.getElementById("map")
+       iframe.src = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`
+    }
+
+    function initMap(lat, lng) {
+      var mapOptions = {
+        center: { lat: parseFloat(lat), lng: parseFloat(lng) },
+        zoom: 12
+      };
+      var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+      var marker = new google.maps.Marker({
+        position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+        map: map
+      });
+    }
+
+    function showLocation(ip) {
+      document.getElementById('ip-address').textContent = `IP Address: ${ip}`;
+
+    //   fetch(`https://ipinfo.io/${ip}/geo`)
+    fetch(`https://ipinfo.io/${ip}?token=811f699bc9476d`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.loc,'test')
+          const { lat, lng } = data.loc.split(',');
+          const timezone = data.timezone;
+          const date = new Date().toLocaleString('en-US', { timeZone: timezone });
+          const pincode = data.postal;
+
+          document.getElementById('timezone').textContent = `Timezone: ${timezone}`;
+          document.getElementById('date-time').textContent = `Date and Time: ${date}`;
+          document.getElementById('pincode').textContent = `Pincode: ${pincode}`;
+
+          initMap(lat, lng);
+          NewMap(lat, lng);
+
+          fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+            .then(response => response.json())
+            .then(postalData => {
+              const postOffices = postalData[0].PostOffice;
+              const postOfficesList = document.getElementById('post-offices-list');
+              postOfficesList.innerHTML = '';
+
+              postOffices.forEach(postOffice => {
+                const li = document.createElement('li');
+                li.textContent = `${postOffice.Name} - ${postOffice.BranchType}`;
+                postOfficesList.appendChild(li);
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+
+    getIP(showLocation);
+
+    document.getElementById('search-input').addEventListener('input', function() {
+      const query = this.value.toLowerCase();
+      const postOffices = document.getElementById('post-offices-list').getElementsByTagName('li');
+
+      Array.from(postOffices).forEach(postOffice => {
+        const text = postOffice.textContent.toLowerCase();
+        if (text.includes(query)) {
+          postOffice.style.display = 'block';
+        } else {
+          postOffice.style.display = 'none';
+        }
+      });
+    });
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDmNHsTvs-0-apHL5_avv-x3eogJxjRXTw&callback=initMap" async defer></script>
+</body>
+</html>

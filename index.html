@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Public IP ADDRESS</title>
+  <style>
+  #get-info-btn{
+    background-color: black;
+    color: white;
+  }
+  </style>
+</head>
+<body>
+  <h1>My Public IP ADDRESS:</h1>
+
+  <p id="ip-address"></p>
+
+  <button id="get-info-btn">Get Data</button>
+
+  <script>
+    function getIP(callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://api.ipify.org?format=json', true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var data = JSON.parse(xhr.responseText);
+          if(data){console.log(ip)}
+          callback(data.ip);
+        }
+      };
+      xhr.send();
+    }
+
+    function showIPAddress(ip) {
+      document.getElementById('ip-address').textContent = `Your IP Address: ${ip}`;
+    }
+
+    window.addEventListener('load', function() {
+      getIP(showIPAddress);
+    });
+
+    document.getElementById('get-info-btn').addEventListener('click', () => {
+      window.location.href = 'location.html';
+    });
+  </script>
+</body>
+</html>
+
