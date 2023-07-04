@@ -23,7 +23,9 @@
       xhr.onload = function () {
         if (xhr.status === 200) {
           var data = JSON.parse(xhr.responseText);
-          if(data){console.log(ip)}
+          if(data){
+            console.log(data.ip);
+          }
           callback(data.ip);
         }
       };
@@ -31,7 +33,7 @@
     }
 
     function showIPAddress(ip) {
-      document.getElementById('ip-address').textContent = `Your IP Address: ${ip}`;
+      document.getElementById('ip-address').textContent = `${ip}`;
     }
 
     window.addEventListener('load', function() {
@@ -44,4 +46,5 @@
   </script>
 </body>
 </html>
+
 
